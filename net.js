@@ -1,54 +1,10 @@
-const getTensorMetadata = (safetensorBuffer) => {
+
+    window.MODEL_BASE_URL= "https://huggingface.co/wpmed/tinygrad-sd-f16/resolve/main";
+    const getTensorMetadata = (safetensorBuffer) => {
       const metadataLength = Number(new DataView(safetensorBuffer.buffer).getBigUint64(0, true));
       const metadata = JSON.parse(new TextDecoder("utf8").decode(safetensorBuffer.subarray(8, 8 + metadataLength)));
       return Object.fromEntries(Object.entries(metadata).filter(([k, v]) => k !== "__metadata__").map(([k, v]) => [k, {...v, data_offsets: v.data_offsets.map(x => 8 + metadataLength + x)}]));
     };
-    
-    const getProgressDlForPart = async (part, progressCallback) => {
-    const response = await fetch(part);
-    const contentLength = response.headers.get('content-length');
-    const total = parseInt(contentLength, 10);
-  
-    const res = new Response(new ReadableStream({
-      async start(controller) {
-        const reader = response.body.getReader();
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          progressCallback(part, value.byteLength, total);
-          controller.enqueue(value);
-        }
-        controller.close();
-      },
-    }));
-  
-    return res.arrayBuffer();
-  };
-  
-  const getSafetensorParts = async (progress) => {
-    let totalLoaded = 0;
-    let totalSize = 0;
-    let partSize = {};
-
-    const progressCallback = (part, loaded, total) => {
-      totalLoaded += loaded;
-
-      if (!partSize[part]) {
-        totalSize += total;
-        partSize[part] = true;
-      }
-      progress(totalLoaded, totalSize);
-    };
-  
-    const buffers = await Promise.all([
-    getProgressDlForPart('https://huggingface.co/wpmed/tinygrad-sd/resolve/main/net_part0.safetensors', progressCallback),
-    getProgressDlForPart('https://huggingface.co/wpmed/tinygrad-sd/resolve/main/net_part1.safetensors', progressCallback),
-    getProgressDlForPart('https://huggingface.co/wpmed/tinygrad-sd/resolve/main/net_part2.safetensors', progressCallback),
-    getProgressDlForPart('https://huggingface.co/wpmed/tinygrad-sd/resolve/main/net_part3.safetensors', progressCallback)
-    ]);
-  
-    return buffers.map(buffer => new Uint8Array(buffer));
-  };
 
   const getTensorBuffer = (safetensorParts, tensorMetadata, key) => {
     let selectedPart = 0;
