@@ -39,7 +39,7 @@
         console.log("Error: weight '" + key + "' is all zero.");
     }
 
-    return safetensorParts[selectedPart].subarray(...correctedOffsets);
+    return out;
   }
 
   const getWeight = (safetensors, key) => {

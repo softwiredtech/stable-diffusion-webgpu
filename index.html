@@ -87,6 +87,11 @@
         Guidance: <span id="guidanceValue">7.5</span>
         <input id="guidanceRange" type="range" min="3" max="15" value="7.5" step="0.1">
     </label>
+
+    <label>
+        <input id="showStepCheckBox" type="checkbox">
+        Show image at each step
+    </label>
     
     <input id="btnRunNet" type="button" value="Run" disabled>
 
@@ -421,7 +426,7 @@
             document.getElementById("btnRunNet").disabled = false;
         }
 
-        function runStableDiffusion(prompt, steps, guidance) {
+        function runStableDiffusion(prompt, steps, guidance, showStep) {
             return new Promise(async (resolve, reject) => {
                 let context = await timer(() => nets["textModel"](clipTokenizer.encodeForCLIP(prompt)));
                 let unconditional_context = await timer(() => nets["textModel"](clipTokenizer.encodeForCLIP("")));
@@ -458,6 +463,11 @@
                     let timestep = new Float32Array([timesteps[i]]);
                     let x_prev = await timer(() => nets["diffusor"](unconditional_context, context, latent, timestep, new Float32Array([alphas[i]]), new Float32Array([alphas_prev[i]]), new Float32Array([guidance])));
                     latent = x_prev;
+
+                    if (showStep != null) {
+                        showStep(await nets["decoder"](latent));
+                    }
+
                     document.getElementById("progressBar").value = ((steps - i) / steps) * 100
                     document.getElementById("progressFraction").innerHTML = (steps - i) + "/" + steps
                 }
@@ -466,27 +476,39 @@
             });
         }
 
+        function renderImage(e, image) {
+            let pixels = []
+            let pixelCounter = 0
+
+            for (let j = 0; j < 512; j++) {
+                for (let k = 0; k < 512; k++) {
+                    pixels.push(image[pixelCounter])
+                    pixels.push(image[pixelCounter+1])
+                    pixels.push(image[pixelCounter+2])
+                    pixels.push(255)
+                    pixelCounter += 3
+                }
+            }
+
+            ctx.putImageData(new ImageData(new Uint8ClampedArray(pixels), 512, 512), 0, 0);
+            console.log(image);
+            console.log("Success");
+            e.target.disabled = false;
+        }
+
         document.getElementById("btnRunNet").addEventListener("click", function(e) {
             e.target.disabled = true;
+            const canvas = document.getElementById("canvas");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            runStableDiffusion(document.getElementById("promptText").value, document.getElementById("stepRange").value, document.getElementById("guidanceRange").value).then((image) => {
-                let pixels = []
-                let pixelCounter = 0
-
-                for (let j = 0; j < 512; j++) {
-                    for (let k = 0; k < 512; k++) {
-                        pixels.push(image[pixelCounter])
-                        pixels.push(image[pixelCounter+1])
-                        pixels.push(image[pixelCounter+2])
-                        pixels.push(255)
-                        pixelCounter += 3
-                    }
-                }
-                
-                ctx.putImageData(new ImageData(new Uint8ClampedArray(pixels), 512, 512), 0, 0);
-                console.log(image);
-                console.log("Success");
-                e.target.disabled = false;
+            runStableDiffusion(
+                document.getElementById("promptText").value,
+                document.getElementById("stepRange").value,
+                document.getElementById("guidanceRange").value,
+                // Decode at each step
+                (document.getElementById("showStepCheckBox").checked) ? (image) => renderImage(e, image) : null
+            ).then((image) => {
+                renderImage(e, image);
             });
         }, false);
 
