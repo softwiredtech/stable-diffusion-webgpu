@@ -68,7 +68,10 @@
         import ClipTokenizer from 'https://softwired.nyc3.cdn.digitaloceanspaces.com/sd/clip_tokenizer.js';
         window.clipTokenizer = new ClipTokenizer();
     </script>
-    <script src="./f16_to_f32.js"></script>
+    <script type="module">
+        import { f16tof32GPU } from 'https://unpkg.com/f16-to-f32-gpu@0.1.0/src/index.js';
+        window.f16tof32GPU = f16tof32GPU;
+    </script>
     <script src="./net.js"></script>
 </head>
 
@@ -351,16 +354,7 @@
                 let chunkStartF16 = 8 + metadataLength + (decodeChunkSize * i);
                 let chunkEndF16 = chunkStartF16 + decodeChunkSize;
                 let chunk = combinedBuffer.subarray(chunkStartF16, chunkEndF16);
-
-                if (chunk.byteLength %4 != 0) {
-                    const paddingBytes = 4 - (chunk.byteLength % 4);
-                    const alignedBuffer = new ArrayBuffer(chunk.byteLength + paddingBytes);
-                    const alignedView = new Uint8Array(alignedBuffer);
-                    alignedView.set(new Uint8Array(chunk));
-                    chunk = alignedView;
-                }
-
-                let result = await f16tof32GPU(device, chunk);
+                let result = await f16tof32GPU(chunk);
                 let resultUint8 = new Uint8Array(result.buffer);
                 let chunkStartF32 = 8 + metadataLength + (decodeChunkSize * i * 2);
                 let chunkEndF32 = chunkStartF32 + resultUint8.byteLength;
