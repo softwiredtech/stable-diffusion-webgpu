@@ -1,6 +1,7 @@
 # Stable Diffusion on [tinygrad](https://github.com/tinygrad/tinygrad) WebGPU
 
 This is a WebGPU port of Stable Diffusion in [tinygrad](https://github.com/tinygrad/tinygrad).<br>
+Try it out [here](https://softwiredtech.github.io/stable-diffusion-webgpu/)!<br>
 The python code I wrote to compile and export the model can be found [here](https://github.com/tinygrad/tinygrad/blob/master/examples/webgpu/stable_diffusion/compile.py)
 
 ## How it works
