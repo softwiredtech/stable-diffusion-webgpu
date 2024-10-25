@@ -305,12 +305,13 @@
                     }
                 });
 
-                await saveTensorToDb(db, "net.f16", combinedBuffer);
+                // Disabling caches as this cause OOM in Chrome currently
+                //await saveTensorToDb(db, "net.f16", combinedBuffer);
 
                 if (textModelU8 == null) {
                     textModelFetched = true;
                     textModelU8 = new Uint8Array(buffers[4]);
-                    await saveTensorToDb(db, "net.text", textModelU8);
+                    //await saveTensorToDb(db, "net.text", textModelU8);
                 }
             } else {
                 combinedBuffer = combinedBuffer.content;
@@ -318,7 +319,7 @@
 
             if (textModelU8 == null) {
                 textModelU8 = new Uint8Array(await getProgressDlForPart(window.MODEL_BASE_URL + '/net_textmodel.safetensors', progressCallback));
-                await saveTensorToDb(db, "net.text", textModelU8);
+                //await saveTensorToDb(db, "net.text", textModelU8);
             } else if (!textModelFetched) {
                 textModelU8 = textModelU8.content;
             }
