@@ -1,5 +1,9 @@
 # Stable Diffusion on [tinygrad](https://github.com/tinygrad/tinygrad) WebGPU
 
+NOTE: This is an outdated model export, please try these instead:
+- new f32 version (~10% faster): https://github.com/wpmed92/stable-diffusion-wgpu-tinygrad
+- f16 version (~40% faster): https://github.com/wpmed92/stable-diffusion-tinygrad-f16
+
 This is a WebGPU port of Stable Diffusion in [tinygrad](https://github.com/tinygrad/tinygrad).<br>
 Try it out [here](https://softwiredtech.github.io/stable-diffusion-webgpu/)!<br>
 The python code I wrote to compile and export the model can be found [here](https://github.com/tinygrad/tinygrad/blob/master/examples/webgpu/stable_diffusion/compile.py)
